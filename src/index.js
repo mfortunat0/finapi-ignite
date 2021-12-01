@@ -26,7 +26,7 @@ app.post("/account", (request, response) => {
 
   if (customersAlreadyExists) {
     response.status(400).json({
-      error: "Custumer already exists",
+      error: "Customer already exists",
     });
   }
 
@@ -43,6 +43,19 @@ app.post("/account", (request, response) => {
 app.get("/statement/", verifyIfExistsAccountCPF, (request, response) => {
   const { customer } = request;
   return response.json(customer.statement);
+});
+
+app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
+  const { description, amount } = request.body;
+  const { customer } = request;
+  const statementOperation = {
+    description,
+    amount,
+    createdAt: new Date(),
+    type: "credit",
+  };
+  customer.statement.push(statementOperation);
+  response.status(201).send();
 });
 
 app.listen(3333);
