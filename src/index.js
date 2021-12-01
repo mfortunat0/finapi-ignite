@@ -9,7 +9,7 @@ function verifyIfExistsAccountCPF(request, response, next) {
   const { cpf } = request.headers;
   const customer = customers.find((customer) => customer.cpf === cpf);
   if (!customer) {
-    response.status(400).json({
+    return response.status(400).json({
       error: "Customer not found",
     });
   }
@@ -25,7 +25,7 @@ app.post("/account", (request, response) => {
   );
 
   if (customersAlreadyExists) {
-    response.status(400).json({
+    return response.status(400).json({
       error: "Customer already exists",
     });
   }
@@ -45,6 +45,17 @@ app.get("/statement/", verifyIfExistsAccountCPF, (request, response) => {
   return response.json(customer.statement);
 });
 
+app.get("/statement/data", verifyIfExistsAccountCPF, (request, response) => {
+  const { customer } = request;
+  const { data } = request.query;
+  const dateFormat = new Date(data + " 00:00");
+  const statement = customer.statement.filter(
+    (statement) =>
+      statement.createdAt.toDateString() === new Date(dateFormat).toDateString()
+  );
+  return response.json(statement);
+});
+
 app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
   const { description, amount } = request.body;
   const { customer } = request;
@@ -55,7 +66,7 @@ app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
     type: "credit",
   };
   customer.statement.push(statementOperation);
-  response.status(201).send();
+  return response.status(201).send();
 });
 
 app.post("/withdraw", verifyIfExistsAccountCPF, (request, response) => {
