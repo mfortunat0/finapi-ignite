@@ -100,6 +100,18 @@ app.get("/account", verifyIfExistsAccountCPF, (request, response) => {
   return response.json(customer);
 });
 
+app.delete("/account", verifyIfExistsAccountCPF, (request, response) => {
+  const { customer } = request;
+  customers.splice(customer, 1);
+  return response.status(204).send();
+});
+
+app.get("/balance", verifyIfExistsAccountCPF, (request, response) => {
+  const { customer } = request;
+  const balance = getBalance(customers.statement);
+  return response.json(balance);
+});
+
 function getBalance(statement) {
   const balance = statement.reduce((acc, operation) => {
     if (operation.type === "credit") {
