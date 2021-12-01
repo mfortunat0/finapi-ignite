@@ -58,4 +58,34 @@ app.post("/deposit", verifyIfExistsAccountCPF, (request, response) => {
   response.status(201).send();
 });
 
+app.post("/withdraw", verifyIfExistsAccountCPF, (request, response) => {
+  const { amount } = request.body;
+  const { customer } = request;
+  const balance = getBalance(customer.statement);
+  if (balance < amount) {
+    return response.status(400).json({
+      error: "Insufficient funds",
+    });
+  }
+  const statementOption = {
+    amount,
+    createdAt: new Date(),
+    type: "debit",
+  };
+
+  customer.statement.push(statementOption);
+  return response.status(201).send();
+});
+
+function getBalance(statement) {
+  const balance = statement.reduce((acc, operation) => {
+    if (operation.type === "credit") {
+      return acc + operation.amount;
+    } else {
+      return acc - operation.amount;
+    }
+  }, 0);
+  return balance;
+}
+
 app.listen(3333);
